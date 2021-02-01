@@ -1,6 +1,6 @@
 dashboardPage(
   dashboardHeader(
-    title = "MHK-env Report",
+    title = "MHK-env Dev Report",
     dropdownMenuOutput("messageMenu")),
 
   dashboardSidebar(
