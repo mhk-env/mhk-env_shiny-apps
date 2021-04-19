@@ -1,4 +1,5 @@
 fluidPage(
     leafletOutput("map"),
-    plotlyOutput("p"))
+    plotlyOutput("p"),
+    verbatimTextOutput("click"))
 

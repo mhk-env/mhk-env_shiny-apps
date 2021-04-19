@@ -8,7 +8,7 @@ shinyServer(function(input, output, session) {
         label        = ~label_html, 
         popup        = ~popup_html) })
   
-  output$p <- renderPlotly({
+  output$p_old <- renderPlotly({
     
     #pick the color and shape scale
     scale <- RColorBrewer::brewer.pal(n=10, name = 'PiYG')
@@ -53,5 +53,32 @@ shinyServer(function(input, output, session) {
     #specify the tooltip in the ggplotly function to get custom text
     ggplotly(g, tooltip = 'text', height = 700, width = 1000)
   })
-
+  
+  output$p <- renderPlotly({
+    
+    plot_ly(
+      data = d_permits, type = "scatter",
+      x = ~license_date, y = ~project_name)
+  })
+  
+  output$click <- renderPrint({
+    d <- event_data("plotly_click")
+    if (is.null(d)) "Click events appear here (double-click to clear)" else d
+  })
+  
+  # Use a separate observer to zoom to point
+  observe({
+    d <- event_data("plotly_click")
+    req(d)
+    
+    proxy <- leafletProxy("map")
+    
+    s <- prj_sites %>% 
+      filter(project_name == d$y)
+      
+    proxy %>% 
+      flyTo(s$longitude, s$latitude, 8)
+    
+  })
+  
 })
