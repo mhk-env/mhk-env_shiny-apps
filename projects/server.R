@@ -12,7 +12,20 @@ shinyServer(function(input, output, session) {
     
     #pick the color and shape scale
     scale <- RColorBrewer::brewer.pal(n=10, name = 'PiYG')
-    scale <- scale[c(1:5, 5, 7, 7:10, 10)]
+    scale <- scale[c(1:5, 5, 7, 7:10)]
+    
+    scale <- setNames(scale, c("Notice of Intent/Preliminary Permit Application",
+                               "Draft Pilot License App",
+                               "Final Pilot License App",
+                               "Pilot License Issued",
+                               "Draft License App",
+                               "Draft Re-License App",
+                               "Final License App",
+                               "Final Re-License App",
+                               "Environmental Assessment",
+                               "Settlement Agreement",
+                               "Permit Issued"))
+    
     shp   <- c(rep(24, 3), 25, 24, 25, 24, 25, rep(24, 3), 25) 
     
     #the input to ggplot is what determines the tooltip label
@@ -52,14 +65,42 @@ shinyServer(function(input, output, session) {
     # interactive plot with tooltip
     #specify the tooltip in the ggplotly function to get custom text
     ggplotly(g, tooltip = 'text', height = 700, width = 1000)
+  
   })
   
   output$p <- renderPlotly({
     
-    plot_ly(
-      data = d_permits, type = "scatter",
-      x = ~license_date, y = ~project_name)
-  })
+    fig <- plot_ly() 
+    
+    fig <- fig %>% add_segments(
+      data = d_times, 
+      x = ~date_beg, 
+      xend = ~date_end, 
+      y = ~project_name,
+      yend = ~project_name,
+      color = ~project_status,
+      colors = c("#30A4E1", "#999999"),
+      line = list(width = 10),
+      showlegend = TRUE)
+    
+    fig <- fig %>% add_markers(
+      data = d_permits,
+      x = ~license_date, 
+      y = ~project_name,
+      color = ~permit_type)
+    
+    fig <- fig %>% layout(
+      xaxis = list(
+        title = 'Date'
+      ),
+      yaxis = list(
+        title = 'Project Name'
+      )
+    )
+    
+    fig
+  
+   })
   
   output$click <- renderPrint({
     d <- event_data("plotly_click")
