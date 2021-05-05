@@ -14,17 +14,19 @@ shinyServer(function(input, output, session) {
     scale <- RColorBrewer::brewer.pal(n=10, name = 'PiYG')
     scale <- scale[c(1:5, 5, 7, 7:10)]
     
-    scale <- setNames(scale, c("Notice of Intent/Preliminary Permit Application",
-                               "Draft Pilot License App",
-                               "Final Pilot License App",
-                               "Pilot License Issued",
-                               "Draft License App",
-                               "Draft Re-License App",
-                               "Final License App",
-                               "Final Re-License App",
-                               "Environmental Assessment",
-                               "Settlement Agreement",
-                               "Permit Issued"))
+    scale <- setNames(
+      scale, 
+      c("Notice of Intent/Preliminary Permit Application",
+        "Draft Pilot License App",
+        "Final Pilot License App",
+        "Pilot License Issued",
+        "Draft License App",
+        "Draft Re-License App",
+        "Final License App",
+        "Final Re-License App",
+        "Environmental Assessment",
+        "Settlement Agreement",
+        "Permit Issued"))
     
     shp   <- c(rep(24, 3), 25, 24, 25, 24, 25, rep(24, 3), 25) 
     
@@ -70,24 +72,32 @@ shinyServer(function(input, output, session) {
   
   output$p <- renderPlotly({
     
-    fig <- plot_ly() 
+    # schema()
     
-    fig <- fig %>% add_segments(
-      data = d_times, 
-      x = ~date_beg, 
-      xend = ~date_end, 
-      y = ~project_name,
-      yend = ~project_name,
-      color = ~project_status,
-      colors = c("#30A4E1", "#999999"),
-      line = list(width = 10),
-      showlegend = TRUE)
+    fig <- plot_ly()
+    
+    fig <- fig %>% 
+      # add_segments(
+      # https://plotly-r.com/scatter-traces.html
+      add_trace(
+        type = "bar",
+        data = d_times,
+        x = ~date_beg,
+        xend = ~date_end,
+        y = ~project_name,
+        yend = ~project_name,
+        color = ~project_status,
+        colors = c("#30A4E1", "#999999"),
+        line = list(width = 10),
+        showlegend = TRUE)
+    fig
     
     fig <- fig %>% add_markers(
       data = d_permits,
       x = ~license_date, 
       y = ~project_name,
       color = ~permit_type)
+    fig
     
     fig <- fig %>% layout(
       xaxis = list(
