@@ -39,3 +39,7 @@ d_times$technology_type <- factor(d_times$technology_type,
                                   levels = c('Riverine Energy', 
                                              'Tidal Energy', 
                                              'Wave Energy'))
+
+d_times$project_status <- factor(d_times$project_status, 
+                                  levels = c('Active Project', 
+                                             'Inactive Project'))

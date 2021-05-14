@@ -11,12 +11,14 @@ shinyServer(function(input, output, session) {
   output$p_old <- renderPlotly({
     
     #pick the color and shape scale
-    scale <- RColorBrewer::brewer.pal(n=10, name = 'PiYG')
-    scale <- scale[c(1:5, 5, 7, 7:10)]
-    
-    scale <- setNames(
-      scale, 
-      c("Notice of Intent/Preliminary Permit Application",
+    scale <- RColorBrewer::brewer.pal(n=10, name = 'PiYG') #For permit type
+    scale <- scale[c(1:5, 5, 7, 7:10)] #Create discrete values for permit type
+    scale2 <- c("#30A4E1", "#999999", scale) #Concatenate with color scale for Active/Inactive Projects
+    scale2 <- setNames( #Create named color scale
+      scale2, 
+      c("Active Project",
+        "Inactive Project",
+        "Notice of Intent/Preliminary Permit Application",
         "Draft Pilot License App",
         "Final Pilot License App",
         "Pilot License Issued",
@@ -28,7 +30,23 @@ shinyServer(function(input, output, session) {
         "Settlement Agreement",
         "Permit Issued"))
     
-    shp   <- c(rep(24, 3), 25, 24, 25, 24, 25, rep(24, 3), 25) 
+    shp   <- c(rep('triangle-up', 3), 'triangle-down', 'triangle-up', 'triangle-down', 'triangle-up', 'triangle-down', rep('triangle-up', 3)) #Create shape for permit type symbols
+    shp2 <- c(rep(NA, 2), shp) #Concatenate with shapes (NA) for Active/Inactive Projects
+    shp2 <- setNames( #Create named shape scale
+      shp2, 
+      c("Active Project",
+        "Inactive Project",
+        "Notice of Intent/Preliminary Permit Application",
+        "Draft Pilot License App",
+        "Final Pilot License App",
+        "Pilot License Issued",
+        "Draft License App",
+        "Draft Re-License App",
+        "Final License App",
+        "Final Re-License App",
+        "Environmental Assessment",
+        "Settlement Agreement",
+        "Permit Issued"))
     
     #the input to ggplot is what determines the tooltip label
     g <- ggplot(
@@ -72,32 +90,32 @@ shinyServer(function(input, output, session) {
   
   output$p <- renderPlotly({
     
-    # schema()
-    
-    fig <- plot_ly()
+    fig <- plot_ly(colors = scale2, symbols = shp2)
     
     fig <- fig %>% 
-      # add_segments(
-      # https://plotly-r.com/scatter-traces.html
-      add_trace(
-        type = "bar",
+      add_segments(
         data = d_times,
         x = ~date_beg,
         xend = ~date_end,
         y = ~project_name,
         yend = ~project_name,
         color = ~project_status,
-        colors = c("#30A4E1", "#999999"),
-        line = list(width = 10),
-        showlegend = TRUE)
+        line = list(width = 10))
     fig
+    plotly_json(p = fig)
     
     fig <- fig %>% add_markers(
       data = d_permits,
       x = ~license_date, 
       y = ~project_name,
-      color = ~permit_type)
+      symbol = ~permit_type,
+      symbols = shp,
+      color = ~permit_type,
+      colors = scale, 
+      size = 10)
+    
     fig
+    #plotly_json(p = fig)
     
     fig <- fig %>% layout(
       xaxis = list(
