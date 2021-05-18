@@ -48,6 +48,9 @@ shinyServer(function(input, output, session) {
         "Settlement Agreement",
         "Permit Issued"))
     
+    
+    
+    
     #the input to ggplot is what determines the tooltip label
     g <- ggplot(
       d_permits, 
@@ -90,7 +93,7 @@ shinyServer(function(input, output, session) {
   
   output$p <- renderPlotly({
     
-    fig <- plot_ly(colors = scale2, symbols = shp2)
+    fig <- plot_ly(colors = scale2, symbols = shp2, height=800)
     
     fig <- fig %>% 
       add_segments(
@@ -101,8 +104,8 @@ shinyServer(function(input, output, session) {
         yend = ~project_name,
         color = ~project_status,
         line = list(width = 10))
-    fig
-    plotly_json(p = fig)
+    #fig
+    #plotly_json(p = fig)
     
     fig <- fig %>% add_markers(
       data = d_permits,
@@ -114,21 +117,234 @@ shinyServer(function(input, output, session) {
       colors = scale, 
       size = 10)
     
-    fig
+    #fig
     #plotly_json(p = fig)
     
     fig <- fig %>% layout(
       xaxis = list(
-        title = 'Date'
+        title = 'Date',
+        showline = FALSE,
+        showgrid = FALSE
       ),
       yaxis = list(
-        title = 'Project Name'
+        title = '',
+        autorange = "reversed",
+        domain = c(0,1),
+        range = c(0, length(unique(d_times$project_name))),
+        showline = TRUE,
+        showgrid = FALSE,
+        type = "category"
+      ),
+      margin = list(
+        r = 10, 
+        t = 25, 
+        b = 40, 
+        l = 100
+      ),
+      legend = list(
+        x = 1, 
+        y = 0.5
+      ), 
+      shapes = list(
+        list(
+          line = list(
+            color = "black", 
+            width = 0.8
+          ), 
+          type = "line", 
+          x0 = -0.3, 
+          x1 = 1, 
+          xref = "paper", 
+          y0 = 1-0.125, 
+          y1 = 1-0.125, 
+          yref = "paper"
+        ), 
+        list(
+          line = list(
+            color = "black", 
+            width = 0.8
+          ), 
+          type = "line", 
+          x0 = -0.3, 
+          x1 = 1, 
+          xref = "paper", 
+          y0 = 1-0.45, 
+          y1 = 1-0.45, 
+          yref = "paper"
+        ),
+        list(
+          line = list(
+            color = "black", 
+            width = 0.8
+          ), 
+          type = "line", 
+          x0 = -0.3, 
+          x1 = 1, 
+          xref = "paper", 
+          y0 = 1, 
+          y1 = 1, 
+          yref = "paper"
+        ),
+        list(
+          line = list(
+            color = "black", 
+            width = 0.8
+          ), 
+          type = "line", 
+          x0 = -0.3, 
+          x1 = 1, 
+          xref = "paper", 
+          y0 = 0, 
+          y1 = 0, 
+          yref = "paper"
+        )
+      ),
+        annotations = list(
+          list(
+            x = -0.0951769406393, 
+            y = 1.03, 
+            showarrow = FALSE, 
+            text = "Project Name", 
+            xref = "paper", 
+            yref = "paper",
+            font = list(size = 14)
+          ), 
+          list(
+            x = -0.3, 
+            y = 1.03, 
+            showarrow = FALSE, 
+            text = "Technology", 
+            xref = "paper", 
+            yref = "paper",
+            font = list(size = 14)
+          ), 
+          list(
+            x = -0.3, 
+            y = 0.98, 
+            showarrow = FALSE, 
+            text = "Riverine", 
+            xref = "paper", 
+            yref = "paper",
+            font = list(size = 14)
+          ), 
+          list(
+            x = -0.3, 
+            y = 1-0.125, 
+            showarrow = FALSE, 
+            text = "Tidal", 
+            xref = "paper", 
+            yref = "paper",
+            font = list(size = 14)
+          ),
+          list(
+            x = -0.3, 
+            y = 1-0.4625, 
+            showarrow = FALSE, 
+            text = "Wave", 
+            xref = "paper", 
+            yref = "paper",
+            font = list(size = 14)
+          )
+        )
       )
-    )
     
-    fig
+    #fig
   
    })
+  
+  
+  #TEST
+  # fig <- plot_ly(orientation='h', line=list(color='gray'), height=400, width=600)
+  # fig <- fig %>% add_boxplot(x=c(2,3,1,5), y=c('A','A','A','A'), name='A')
+  # fig <- fig %>% add_boxplot(x=c(8,3,6,5), y=c('B','B','B','B'), name='B')
+  # fig <- fig %>% add_boxplot(x=c(2,3,2,5), y=c('C','C','C','C'), name='C')
+  # fig <- fig %>% add_boxplot(x=c(7.5,3,6,4), y=c('D','D','D','D'), name='D')
+  # fig <- fig %>% layout(
+  #   title = '',
+  #   yaxis = list(
+  #     autorange = TRUE, 
+  #     categoryorder = "category descending", 
+  #     domain = c(0, 1), 
+  #     range = c(-0.5, 3.5), 
+  #     showline = TRUE, 
+  #     title = "", 
+  #     type = "category"
+  #   ),
+  #   margin = list(
+  #     r = 10, 
+  #     t = 25, 
+  #     b = 40, 
+  #     l = 110
+  #   ),
+  #   legend = list(
+  #     x = 0.986145833333, 
+  #     y = 0.936263886049
+  #   ), 
+  #   shapes = list(
+  #     list(
+  #       line = list(
+  #         color = "rgba(68, 68, 68, 0.5)", 
+  #         width = 1
+  #       ), 
+  #       type = "line", 
+  #       x0 = -0.3, 
+  #       x1 = 1.2, 
+  #       xref = "paper", 
+  #       y0 = 0.5, 
+  #       y1 = 0.5, 
+  #       yref = "paper"
+  #     ), 
+  #     list(
+  #       line = list(
+  #         color = "rgba(68, 68, 68, 0.63)", 
+  #         width = 1
+  #       ), 
+  #       type = "line", 
+  #       x0 = -0.3, 
+  #       x1 = 1.2, 
+  #       xref = "paper", 
+  #       y0 = 1, 
+  #       y1 = 1, 
+  #       yref = "paper"
+  #     )
+  #   ),
+  #   annotations = list(
+  #     list(
+  #       x = -0.0951769406393, 
+  #       y = 1.06972670892, 
+  #       showarrow = FALSE, 
+  #       text = "Subgroup", 
+  #       xref = "paper", 
+  #       yref = "paper"
+  #     ), 
+  #     list(
+  #       x = -0.235516552511, 
+  #       y = 1.07060587474, 
+  #       showarrow = FALSE, 
+  #       text = "Group", 
+  #       xref = "paper", 
+  #       yref = "paper"
+  #     ), 
+  #     list(
+  #       x = -0.235516552511, 
+  #       y = 0.922906017856, 
+  #       showarrow = FALSE, 
+  #       text = "One", 
+  #       xref = "paper", 
+  #       yref = "paper"
+  #     ), 
+  #     list(
+  #       x = -0.235516552511, 
+  #       y = 0.375, 
+  #       showarrow = FALSE, 
+  #       text = "Two", 
+  #       xref = "paper", 
+  #       yref = "paper"
+  #     )
+  #   )
+  # )
+  
+  
   
   output$click <- renderPrint({
     d <- event_data("plotly_click")

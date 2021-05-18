@@ -43,3 +43,25 @@ d_times$technology_type <- factor(d_times$technology_type,
 d_times$project_status <- factor(d_times$project_status, 
                                   levels = c('Active Project', 
                                              'Inactive Project'))
+
+#Create dataframes for riverine, tidal, and wave energy projects
+proj.sum <-
+  d_times %>%
+  group_by(technology_type) %>%
+  distinct(project_name)
+
+proj.sum.ord <-
+  proj.sum %>%
+  pull(project_name)
+
+proj.sum.len <-
+  proj.sum %>%
+  summarise(n = n())
+
+#Factor project_name by list of ordered projects
+
+d_permits$project_name <- factor(d_permits$project_name,
+                                 levels = proj.sum.ord)
+
+d_times$project_name <- factor(d_times$project_name,
+                               levels = proj.sum.ord)
