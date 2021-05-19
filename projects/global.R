@@ -58,6 +58,19 @@ proj.sum.len <-
   proj.sum %>%
   summarise(n = n())
 
+#Create objects with length of projects in each technology type
+riv.n <- proj.sum.len %>%
+  filter(., technology_type == "Riverine Energy") %>%
+  pull(n)
+
+tid.n <- proj.sum.len %>%
+  filter(., technology_type == "Tidal Energy") %>%
+  pull(n)
+
+wav.n <- proj.sum.len %>%
+  filter(., technology_type == "Wave Energy") %>%
+  pull(n)
+
 #Factor project_name by list of ordered projects
 
 d_permits$project_name <- factor(d_permits$project_name,
@@ -65,3 +78,41 @@ d_permits$project_name <- factor(d_permits$project_name,
 
 d_times$project_name <- factor(d_times$project_name,
                                levels = proj.sum.ord)
+
+#pick the color and shape scale
+scale <- RColorBrewer::brewer.pal(n=10, name = 'PiYG') #For permit type
+scale <- scale[c(1:5, 5, 7, 7:10)] #Create discrete values for permit type
+scale2 <- c("#30A4E1", "#999999", scale) #Concatenate with color scale for Active/Inactive Projects
+scale2 <- setNames( #Create named color scale
+  scale2, 
+  c("Active Project",
+    "Inactive Project",
+    "Notice of Intent/Preliminary Permit Application",
+    "Draft Pilot License App",
+    "Final Pilot License App",
+    "Pilot License Issued",
+    "Draft License App",
+    "Draft Re-License App",
+    "Final License App",
+    "Final Re-License App",
+    "Environmental Assessment",
+    "Settlement Agreement",
+    "Permit Issued"))
+
+shp   <- c(rep('triangle-up', 3), 'triangle-down', 'triangle-up', 'triangle-down', 'triangle-up', 'triangle-down', rep('triangle-up', 3)) #Create shape for permit type symbols
+shp2 <- c(rep(NA, 2), shp) #Concatenate with shapes (NA) for Active/Inactive Projects
+shp2 <- setNames( #Create named shape scale
+  shp2, 
+  c("Active Project",
+    "Inactive Project",
+    "Notice of Intent/Preliminary Permit Application",
+    "Draft Pilot License App",
+    "Final Pilot License App",
+    "Pilot License Issued",
+    "Draft License App",
+    "Draft Re-License App",
+    "Final License App",
+    "Final Re-License App",
+    "Environmental Assessment",
+    "Settlement Agreement",
+    "Permit Issued"))
