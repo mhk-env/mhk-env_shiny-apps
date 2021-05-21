@@ -3,116 +3,71 @@ if (!require(librarian)){
   library(librarian)
 }
 shelf(
-  dplyr, glue, here, htmltools, leaflet, plotly, RColorBrewer, readr)
+  dplyr, glue, here, htmltools, leaflet, plotly, RColorBrewer, readr, sf)
 
-prj_sites_csv   <- here("data/project_sites.csv")
-prj_times_csv   <- here("data/project_times.csv")
-prj_permits_csv <- here("data/project_permits.csv")
+# p_csvs <- list.files("/share/github/apps/data", "project_.*")
+# file.copy(file.path("/share/github/apps/data", p_csvs), file.path("/share/github/apps_dev/data", p_csvs), overwrite = T)
+prj_sites_csv        <- here("data/project_sites.csv")
+prj_times_csv        <- here("data/project_times.csv")
+prj_permits_csv      <- here("data/project_permits.csv")
+prj_permit_types_csv <- here("data/project_permit_types.csv")
 
-prj_sites <- read_csv(prj_sites_csv) 
+prj_sites <- read_csv(prj_sites_csv, col_types = cols()) %>% 
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326, remove = F)
+
+d_times <- read_csv(prj_times_csv, col_types = cols())  %>% 
+  arrange(technology_type, project) %>% 
+  mutate(
+    technology_type = factor(technology_type))
+d_times <- d_times %>% 
+  mutate(
+    # order projects by technology_type, then project
+    project = factor(project, levels = d_times$project))
+# levels(d_times$project) # Igiugig,...,Yakutat
+
+d_permits <- read_csv(prj_permits_csv, col_types = cols()) %>% 
+  left_join(
+    d_times %>% 
+      select(project, technology_type), 
+    by = "project") %>% 
+  arrange(technology_type, project)
+d_permits <- d_permits %>% 
+  mutate(
+    # order projects by technology_type, then project
+    project = factor(project, levels = distinct(d_permits, project) %>% pull(project)))
+# levels(d_permits$project) # Igiugig,...,Yakutat
+
+# order permit_types
+permit_types <- read_csv(prj_permit_types_csv, col_types = cols()) %>% 
+  pull(permit_types)
+permit_types <- permit_types %>% 
+  intersect(d_permits$permit_type)
+d_permits <- d_permits %>% 
+  mutate(
+    # order by permit_types
+    permit_type = factor(permit_type, levels = permit_types))
+
 prj_sites$label_html <- prj_sites$label_html %>% lapply(HTML)
 prj_sites$popup_html <- prj_sites$popup_html %>% lapply(HTML)
 
-d_times   <- read_csv(prj_times_csv) 
-d_permits <- read_csv(prj_permits_csv) 
+# colors & symbols
+project_statuses <- unique(d_times$project_status)
+cols_type  <- colorRampPalette(brewer.pal(n=11, name = 'PiYG'))(length(permit_types))
+cols_status <- c("#30A4E1", "#999999") # Active/Inactive Projects
+cols <- setNames(
+  c(cols_type, cols_status), 
+  c(permit_types, project_statuses))
+syms_type  <- c(rep('triangle-up', 3), 'triangle-down', 'triangle-up', 'triangle-down', 'triangle-up', 'triangle-down', rep('triangle-up', 3))
+syms_status <- rep(NA, 2)
+syms <- setNames(
+  c(syms_type, syms_status), 
+  c(permit_types, project_statuses))
 
-#Create factored list for permit type and technology type for plotting symbols/colors
-d_permits$permit_type <- factor(d_permits$permit_type, 
-                                levels = c("Notice of Intent/Preliminary Permit Application",
-                                           "Draft Pilot License App",
-                                           "Final Pilot License App",
-                                           "Pilot License Issued",
-                                           "Draft License App",
-                                           "Draft Re-License App",
-                                           "Final License App",
-                                           "Final Re-License App",
-                                           "Environmental Assessment",
-                                           "Settlement Agreement",
-                                           "Permit Issued"))
-
-d_permits$technology_type <- factor(d_permits$technology_type, 
-                                    levels = c('Riverine Energy', 
-                                               'Tidal Energy', 
-                                               'Wave Energy'))
-
-d_times$technology_type <- factor(d_times$technology_type, 
-                                  levels = c('Riverine Energy', 
-                                             'Tidal Energy', 
-                                             'Wave Energy'))
-
-d_times$project_status <- factor(d_times$project_status, 
-                                  levels = c('Active Project', 
-                                             'Inactive Project'))
-
-#Create dataframes for riverine, tidal, and wave energy projects
-proj.sum <-
-  d_times %>%
-  group_by(technology_type) %>%
-  distinct(project_name)
-
-proj.sum.ord <-
-  proj.sum %>%
-  pull(project_name)
-
-proj.sum.len <-
-  proj.sum %>%
-  summarise(n = n())
-
-#Create objects with length of projects in each technology type
-riv.n <- proj.sum.len %>%
-  filter(., technology_type == "Riverine Energy") %>%
-  pull(n)
-
-tid.n <- proj.sum.len %>%
-  filter(., technology_type == "Tidal Energy") %>%
-  pull(n)
-
-wav.n <- proj.sum.len %>%
-  filter(., technology_type == "Wave Energy") %>%
-  pull(n)
-
-#Factor project_name by list of ordered projects
-
-d_permits$project_name <- factor(d_permits$project_name,
-                                 levels = proj.sum.ord)
-
-d_times$project_name <- factor(d_times$project_name,
-                               levels = proj.sum.ord)
-
-#pick the color and shape scale
-scale <- RColorBrewer::brewer.pal(n=10, name = 'PiYG') #For permit type
-scale <- scale[c(1:5, 5, 7, 7:10)] #Create discrete values for permit type
-scale2 <- c("#30A4E1", "#999999", scale) #Concatenate with color scale for Active/Inactive Projects
-scale2 <- setNames( #Create named color scale
-  scale2, 
-  c("Active Project",
-    "Inactive Project",
-    "Notice of Intent/Preliminary Permit Application",
-    "Draft Pilot License App",
-    "Final Pilot License App",
-    "Pilot License Issued",
-    "Draft License App",
-    "Draft Re-License App",
-    "Final License App",
-    "Final Re-License App",
-    "Environmental Assessment",
-    "Settlement Agreement",
-    "Permit Issued"))
-
-shp   <- c(rep('triangle-up', 3), 'triangle-down', 'triangle-up', 'triangle-down', 'triangle-up', 'triangle-down', rep('triangle-up', 3)) #Create shape for permit type symbols
-shp2 <- c(rep(NA, 2), shp) #Concatenate with shapes (NA) for Active/Inactive Projects
-shp2 <- setNames( #Create named shape scale
-  shp2, 
-  c("Active Project",
-    "Inactive Project",
-    "Notice of Intent/Preliminary Permit Application",
-    "Draft Pilot License App",
-    "Final Pilot License App",
-    "Pilot License Issued",
-    "Draft License App",
-    "Draft Re-License App",
-    "Final License App",
-    "Final Re-License App",
-    "Environmental Assessment",
-    "Settlement Agreement",
-    "Permit Issued"))
+# technology_type numbers for horizontal line and label placement along y axis
+n_tech <- d_times %>% 
+  group_by(technology_type) %>% 
+  summarize(
+    n = n())
+n_riv <- n_tech %>% filter(technology_type == "Riverine Energy") %>% pull(n)
+n_tid <- n_tech %>% filter(technology_type == "Tidal Energy")    %>% pull(n)
+n_wav <- n_tech %>% filter(technology_type == "Wave Energy")     %>% pull(n)
