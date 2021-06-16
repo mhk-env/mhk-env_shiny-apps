@@ -273,7 +273,7 @@ plot_projects <- function(){
           xref = "paper", 
           y0 = 0.025, 
           y1 = 0.025, 
-          yref = "paper"),
+          yref = "paper"))),
         list(
           line = list(
             color = "black", 
